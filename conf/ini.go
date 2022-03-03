@@ -8,9 +8,11 @@ import (
 )
 
 type Server struct {
-	HttpPort string `ini:"HttpPort"`
-	JwtToken string `ini:"JwtToken"`
-	Mode     string `ini:"Mode"`
+	HttpPort  string `ini:"HttpPort"`
+	JwtToken  string `ini:"JwtToken"`
+	Mode      string `ini:"Mode"`
+	StartTime string `ini:"StartTime"`
+	MachineID int    `ini:"MachineID"`
 }
 
 type Log struct {
@@ -46,16 +48,12 @@ func InitConf() (err error) {
 	}
 	err = loadLog(cfg)
 	err = loadMysql(cfg)
+	err = loadServer(cfg)
 	return
 }
 
 func loadLog(cfg *ini.File) (err error) {
 	// Log 相关的内容
-	err = cfg.Section("log").MapTo(LogConn)
-	if err != nil {
-		zap.L().Error("配置错误，请检查", zap.Error(err))
-		return
-	}
 	LogConn = &Log{
 		FileName:  "./WeChatLog.log",
 		MaxSize:   10,
@@ -63,16 +61,16 @@ func loadLog(cfg *ini.File) (err error) {
 		MaxBackUp: 10,
 		Level:     "debug",
 	}
+	err = cfg.Section("log").MapTo(LogConn)
+	if err != nil {
+		zap.L().Error("配置错误，请检查", zap.Error(err))
+		return
+	}
 	return
 }
 
 func loadMysql(cfg *ini.File) (err error) {
 	// Mysql 相关信息
-	err = cfg.Section("mysql").MapTo(MysqlConn)
-	if err != nil {
-		zap.L().Error("配置错误，请检查", zap.Error(err))
-		return
-	}
 	MysqlConn = &Mysql{
 		User:        "root",
 		Password:    "123456",
@@ -82,19 +80,26 @@ func loadMysql(cfg *ini.File) (err error) {
 		MaxOpenConn: 100,
 		MaxIdleConn: 60,
 	}
-	return
-}
-
-func loadServer(cfg *ini.File) (err error) {
-	err = cfg.Section("server").MapTo(ServerConn)
+	err = cfg.Section("mysql").MapTo(MysqlConn)
 	if err != nil {
 		zap.L().Error("配置错误，请检查", zap.Error(err))
 		return
 	}
+	return
+}
+
+func loadServer(cfg *ini.File) (err error) {
 	ServerConn = &Server{
-		HttpPort: ":8080",
-		JwtToken: "WeChatRoom",
-		Mode:     "debug",
+		HttpPort:  ":8080",
+		JwtToken:  "WeChatRoom",
+		Mode:      "debug",
+		StartTime: "2022-03-03",
+		MachineID: 1,
+	}
+	err = cfg.Section("server").MapTo(ServerConn)
+	if err != nil {
+		zap.L().Error("配置错误，请检查", zap.Error(err))
+		return
 	}
 	return
 }

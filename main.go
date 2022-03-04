@@ -6,6 +6,7 @@ import (
 	"wechat_room/conf"
 	"wechat_room/dao"
 	"wechat_room/logger"
+	"wechat_room/middleware/trans"
 	"wechat_room/middleware/uuid"
 	"wechat_room/router"
 )
@@ -30,6 +31,11 @@ func main() {
 	}
 	// 初始化数据库连接
 	if err := dao.InitMysql(); err != nil {
+		zap.L().Error("Mysql Init Failed！", zap.Error(err))
+		return
+	}
+	// 初始化翻译器
+	if err := trans.InitTrans("zh"); err != nil {
 		zap.L().Error("Mysql Init Failed！", zap.Error(err))
 		return
 	}

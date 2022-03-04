@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
+	"wechat_room/api"
 	"wechat_room/conf"
 	"wechat_room/logger"
 )
@@ -13,11 +13,8 @@ func InitRouter() {
 	r.Use(logger.GinLogger(), gin.Recovery())
 	v1 := r.Group("api/v1")
 	{
-		v1.GET("/hello", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"msg": "hahah",
-			})
-		})
+		v1.POST("/login", api.Login)
+		v1.POST("/register", api.Register)
 	}
 	panic(r.Run(conf.ServerConn.HttpPort))
 }

@@ -1,19 +1,16 @@
 package models
 
-import "gorm.io/gorm"
-
 type User struct {
-	gorm.Model
-	UUID     int64    `json:"UUID" gorm:"type:int(10);"`
-	LoginId  string   `json:"LoginId" gorm:"type:varchar(30);"`
-	Name     string   `json:"Name" gorm:"type:varchar(30);"`
-	Sing     string   `json:"Sing" gorm:"type:varchar(30);"`
-	Photo    string   `json:"Photo" gorm:"type:varchar(30);"`
-	Address  string   `json:"Address" gorm:"type:varchar(30);"`
-	Tel      int      `json:"Tel" gorm:"type:int(20);"`
-	Password string   `json:"Password" gorm:"type:varchar(30);"`
-	Account  string   `json:"Account" gorm:"type:varchar(30);"`
-	Email    string   `json:"Email" gorm:"type:varchar(30);"`
-	Status   string   `json:"Status" gorm:"type:varchar(30);"`
-	Friends  []Friend `json:"friends" gorm:"foreignKey:ID"`
+	ID       int    `json:"id" db:"id"`
+	UUID     int64  `json:"uuid" db:"uuid" `         // uuid
+	LoginId  string `json:"login_id" db:"login_id" ` // 登录id
+	Name     string `json:"name" db:"name" `         // 用户名
+	Sing     string `json:"sing" db:"sing" `         // 签名
+	Photo    string `json:"photo" db:"photo" `       // 头像
+	Address  string `json:"address" db:"address" `   // 地址
+	Tel      int    `json:"tel" db:"tel" `           // 电话
+	Password string `json:"password" db:"password" ` // 密码
+	Account  string `json:"account" db:"account" `   // 这个是微信号
+	Email    string `json:"email" db:"email" `       // 邮箱
+	Status   string `json:"status" db:"status" `     // 状态
 }

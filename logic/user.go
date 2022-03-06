@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"fmt"
 	"wechat_room/dao"
 	"wechat_room/middleware/jwtToken"
 	"wechat_room/middleware/uuid"
@@ -13,8 +14,8 @@ import (
 // Register 注册
 func Register(p *models.PramsRegister) (code.MyCode, error) {
 	// 首先判断数据中是否存在数据
-	if err := dao.CheckUserIsExist(p.LoginId); err != nil {
-		return code.CheckUserIsExist, err
+	if myCode, err := dao.CheckUserIsExist(p.LoginId, p.Tel); err != nil {
+		return myCode, err
 	}
 	// 判断用户输入是否合法，并且存入数据库
 	u := models.User{
@@ -23,6 +24,7 @@ func Register(p *models.PramsRegister) (code.MyCode, error) {
 		Password: p.Password,
 		Tel:      p.Tel,
 		Name:     p.Name,
+		Account:  p.Account,
 	}
 	if codeMsg, err := dao.RegisterUserInfo(&u); err != nil {
 		return codeMsg, err
@@ -44,4 +46,19 @@ func Login(p *models.PramsLoginUser) (code.MyCode, string, error) {
 	// 获取token
 	token, err := jwtToken.GetToken(u.UUID, u.Name)
 	return code.SUCCESS, token, nil
+}
+
+// CheckUser 查询用户
+func CheckUser(p *models.PramsCheckUser) (*models.CheckUser, code.MyCode, error) {
+	// 先收集查询的账号信息
+	u := models.User{
+		Tel:     p.Tel,
+		Account: p.Account,
+	}
+	fmt.Println(u.Tel, u.Account)
+	user, myCode, err := dao.CheckUser(&u)
+	if err != nil {
+		return user, myCode, err
+	}
+	return user, myCode, nil
 }

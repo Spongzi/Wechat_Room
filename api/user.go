@@ -55,3 +55,25 @@ func Login(c *gin.Context) {
 	// 返回结果
 	resp.ResponseSuccess(c, token)
 }
+
+// CheckUser 查询好友
+func CheckUser(c *gin.Context) {
+	// 首先，绑定要查询人的信息，可以是用户账号，也可以是用户的手机号
+	p := new(models.PramsCheckUser)
+	if err := c.ShouldBindJSON(p); err != nil {
+		zap.L().Error("绑定信息失败", zap.Error(err))
+		errs, ok := err.(validator.ValidationErrors)
+		if !ok {
+			resp.ResponseError(c, code.InvalidParamFailed)
+		}
+		resp.ResponseErrorWithMsg(c, code.InvalidParamFailed, errs.Translate(trans.Trans))
+		return
+	}
+	// 逻辑判断
+	user, myCode, err := logic.CheckUser(p)
+	if err != nil {
+		resp.ResponseError(c, myCode)
+		return
+	}
+	resp.ResponseSuccess(c, user)
+}

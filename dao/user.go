@@ -11,27 +11,47 @@ import (
 )
 
 // CheckUserIsExist 检查用户是否存在
-func CheckUserIsExist(loginId string) (err error) {
-	var count int
-	sqlStr := "select count(login_Id) from USER where login_id = ?;"
-	err = DB.Get(&count, sqlStr, loginId)
+func CheckUserIsExist(loginId string, tel int) (myCode code.MyCode, err error) {
+	var user models.User
+	err = DB.Debug().
+		Select("login_id, tel").
+		Where("login_id = ?", loginId).Or("tel = ?", tel).
+		Find(&user).
+		Error
 	if err != nil {
 		zap.L().Error("检查用户是否存在错误", zap.Error(err))
-		return errMsg.CheckFailed
+		myCode = code.CheckFailed
+		return myCode, errMsg.CheckFailed
 	}
-	fmt.Println(count)
-	if count > 0 {
+	fmt.Println(user.LoginId, user.Tel)
+	if user.LoginId != "" {
 		zap.L().Error("用户已存在", zap.Error(err))
-		return errMsg.UserIsNotExist
+		myCode = code.CheckUserIsExist
+		return myCode, errMsg.UserIsExist
+	} else if user.Tel != 0 {
+		zap.L().Error("手机号已注册", zap.Error(err))
+		myCode = code.TelIsUsed
+		return myCode, errMsg.TelIsUsed
 	}
-	return
+	return code.SUCCESS, nil
 }
 
 // RegisterUserInfo 注册用户信息
 func RegisterUserInfo(p *models.User) (code.MyCode, error) {
 	p.Password = MD5(p.Password)
-	sqlStr := "insert into user (uuid, name, tel, login_id, password) values (?, ?, ?, ?, ?);"
-	_, err := DB.Exec(sqlStr, p.UUID, p.Name, p.Tel, p.LoginId, p.Password)
+	var user = models.User{
+		UUID:     p.UUID,
+		Name:     p.Name,
+		Tel:      p.Tel,
+		LoginId:  p.LoginId,
+		Password: p.Password,
+		Account:  p.Account,
+	}
+	err := DB.Debug().Select(
+		"uuid", "name", "tel", "login_id", "password", "account",
+	).
+		Create(&user).
+		Error
 	if err != nil {
 		zap.L().Error("创建用户失败", zap.Error(err))
 		return code.InstallUserInfoFailed, err
@@ -41,20 +61,69 @@ func RegisterUserInfo(p *models.User) (code.MyCode, error) {
 
 // CheckUserInfo 检查用户信息
 func CheckUserInfo(p *models.User) (err error) {
-	var password string
-	sqlStr := "select password from USER where login_id = ? ;"
-	err = DB.Get(&password, sqlStr, p.LoginId)
-	if err != nil {
+	var user models.User
+	if err = DB.Select("password").Where("login_id = ?", p.LoginId).Find(&user).Error; err != nil {
 		zap.L().Error("检查用户信息失败", zap.Error(err))
 		return errMsg.CheckFailed
 	}
-	if password != MD5(p.Password) {
+	if user.Password != MD5(p.Password) {
 		zap.L().Error("用户名账号密码不正确")
 		return errMsg.LoginIdOrPasswordIsFailed
 	}
 	return
 }
 
+// CheckUser 查询用户
+func CheckUser(p *models.User) (*models.CheckUser, code.MyCode, error) {
+	// 先定义一个user用来存储信息
+	var user models.User
+	// 去数据库中查询是否存在这个用户,如果存在继续下一步的操作
+	// 如果用户存在，那么返回这个用户的基本信息，名字，签名，头像等信息
+	if p.Tel != 0 {
+		if err := DB.Select("name", "sing", "photo", "tel", "account", "status").
+			Where("tel = ?", p.Tel).
+			Find(&user).
+			Error; err != nil {
+			fmt.Println(err)
+			return &models.CheckUser{
+				Name:    user.Name,
+				Sing:    user.Sing,
+				Photo:   user.Sing,
+				Address: user.Address,
+				Tel:     user.Tel,
+				Account: user.Account,
+				Status:  user.Status,
+			}, code.UserIsNotExist, err
+		}
+	} else {
+		if err := DB.Select("name", "sing", "photo", "tel", "account", "status").
+			Where("tel = ?", p.Tel).
+			Find(&user).
+			Error; err != nil {
+			fmt.Println(err)
+			return &models.CheckUser{
+				Name:    user.Name,
+				Sing:    user.Sing,
+				Photo:   user.Sing,
+				Address: user.Address,
+				Tel:     user.Tel,
+				Account: user.Account,
+				Status:  user.Status,
+			}, code.UserIsNotExist, err
+		}
+	}
+	return &models.CheckUser{
+		Name:    user.Name,
+		Sing:    user.Sing,
+		Photo:   user.Sing,
+		Address: user.Address,
+		Tel:     user.Tel,
+		Account: user.Account,
+		Status:  user.Status,
+	}, code.SUCCESS, nil
+}
+
+// MD5 密码验证
 func MD5(v string) string {
 	d := []byte(v)
 	m := md5.New()

@@ -5,6 +5,7 @@ import (
 	"wechat_room/api"
 	"wechat_room/conf"
 	"wechat_room/logger"
+	"wechat_room/middleware/jwtToken"
 )
 
 func InitRouter() {
@@ -15,6 +16,10 @@ func InitRouter() {
 	{
 		v1.POST("/login", api.Login)
 		v1.POST("/register", api.Register)
+	}
+	v1.Use(jwtToken.JWTAuthMiddleware())
+	{
+		v1.POST("/check", api.CheckUser)
 	}
 	panic(r.Run(conf.ServerConn.HttpPort))
 }

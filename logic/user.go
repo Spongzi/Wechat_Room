@@ -24,7 +24,6 @@ func Register(p *models.PramsRegister) (code.MyCode, error) {
 		Password: p.Password,
 		Tel:      p.Tel,
 		Name:     p.Name,
-		Account:  p.Account,
 	}
 	if codeMsg, err := dao.RegisterUserInfo(&u); err != nil {
 		return codeMsg, err
@@ -53,12 +52,12 @@ func CheckUser(p *models.PramsCheckUser) (*models.CheckUser, code.MyCode, error)
 	// 先收集查询的账号信息
 	u := models.User{
 		Tel:     p.Tel,
-		Account: p.Account,
+		LoginId: p.LoginId,
 	}
-	fmt.Println(u.Tel, u.Account)
+	fmt.Println(u.Tel, u.LoginId)
 	user, myCode, err := dao.CheckUser(&u)
 	if err != nil {
-		return user, myCode, err
+		return nil, myCode, err
 	}
 	return user, myCode, nil
 }

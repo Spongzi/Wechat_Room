@@ -45,10 +45,9 @@ func RegisterUserInfo(p *models.User) (code.MyCode, error) {
 		Tel:      p.Tel,
 		LoginId:  p.LoginId,
 		Password: p.Password,
-		Account:  p.Account,
 	}
 	err := DB.Debug().Select(
-		"uuid", "name", "tel", "login_id", "password", "account",
+		"uuid", "name", "tel", "login_id", "password",
 	).
 		Create(&user).
 		Error
@@ -80,36 +79,21 @@ func CheckUser(p *models.User) (*models.CheckUser, code.MyCode, error) {
 	// 去数据库中查询是否存在这个用户,如果存在继续下一步的操作
 	// 如果用户存在，那么返回这个用户的基本信息，名字，签名，头像等信息
 	if p.Tel != 0 {
-		if err := DB.Select("name", "sing", "photo", "tel", "account", "status").
-			Where("tel = ?", p.Tel).
+		if err := DB.Debug().Select("name", "login_id", "sing", "photo", "tel", "status").
+			Where("tel = ?", p.Tel).Or("login_id = ?", p.LoginId).
 			Find(&user).
 			Error; err != nil {
 			fmt.Println(err)
-			return &models.CheckUser{
-				Name:    user.Name,
-				Sing:    user.Sing,
-				Photo:   user.Sing,
-				Address: user.Address,
-				Tel:     user.Tel,
-				Account: user.Account,
-				Status:  user.Status,
-			}, code.UserIsNotExist, err
+			return nil, code.UserIsNotExist, err
 		}
 	} else {
-		if err := DB.Select("name", "sing", "photo", "tel", "account", "status").
-			Where("tel = ?", p.Tel).
+		if err := DB.Debug().
+			Select("name", "sing", "login_id", "photo", "tel", "account", "status").
+			Where("tel = ?", p.Tel).Or("login_id = ?", p.LoginId).
 			Find(&user).
 			Error; err != nil {
 			fmt.Println(err)
-			return &models.CheckUser{
-				Name:    user.Name,
-				Sing:    user.Sing,
-				Photo:   user.Sing,
-				Address: user.Address,
-				Tel:     user.Tel,
-				Account: user.Account,
-				Status:  user.Status,
-			}, code.UserIsNotExist, err
+			return nil, code.UserIsNotExist, err
 		}
 	}
 	return &models.CheckUser{
@@ -118,8 +102,8 @@ func CheckUser(p *models.User) (*models.CheckUser, code.MyCode, error) {
 		Photo:   user.Sing,
 		Address: user.Address,
 		Tel:     user.Tel,
-		Account: user.Account,
 		Status:  user.Status,
+		LoginId: p.LoginId,
 	}, code.SUCCESS, nil
 }
 

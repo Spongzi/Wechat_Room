@@ -17,6 +17,6 @@ type PramsLoginUser struct {
 
 // PramsCheckUser 查询用户
 type PramsCheckUser struct {
+	LoginId string `json:"login_id"`
 	Tel     int    `json:"tel"`
-	Account string `json:"account"`
 }

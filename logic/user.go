@@ -1,7 +1,6 @@
 package logic
 
 import (
-	"fmt"
 	"wechat_room/dao"
 	"wechat_room/middleware/jwtToken"
 	"wechat_room/middleware/uuid"
@@ -14,7 +13,7 @@ import (
 // Register 注册
 func Register(p *models.PramsRegister) (code.MyCode, error) {
 	// 首先判断数据中是否存在数据
-	if myCode, err := dao.CheckUserIsExist(p.LoginId, p.Tel); err != nil {
+	if _, myCode, err := dao.CheckUserIsExist(p.LoginId, p.Tel); err != nil {
 		return myCode, err
 	}
 	// 判断用户输入是否合法，并且存入数据库
@@ -54,7 +53,6 @@ func CheckUser(p *models.PramsCheckUser) (*models.CheckUser, code.MyCode, error)
 		Tel:     p.Tel,
 		LoginId: p.LoginId,
 	}
-	fmt.Println(u.Tel, u.LoginId)
 	user, myCode, err := dao.CheckUser(&u)
 	if err != nil {
 		return nil, myCode, err

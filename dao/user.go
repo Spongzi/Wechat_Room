@@ -11,7 +11,8 @@ import (
 )
 
 // CheckUserIsExist 检查用户是否存在
-func CheckUserIsExist(loginId string, tel int) (myCode code.MyCode, err error) {
+func CheckUserIsExist(loginId string, tel int) (IsExist bool, myCode code.MyCode, err error) {
+	fmt.Println("CheckUserIsExist", loginId, "电话号码是", tel)
 	var user models.User
 	err = DB.Debug().
 		Select("login_id, tel").
@@ -21,19 +22,23 @@ func CheckUserIsExist(loginId string, tel int) (myCode code.MyCode, err error) {
 	if err != nil {
 		zap.L().Error("检查用户是否存在错误", zap.Error(err))
 		myCode = code.CheckFailed
-		return myCode, errMsg.CheckFailed
+		IsExist = false
+		return IsExist, myCode, errMsg.CheckFailed
 	}
-	fmt.Println(user.LoginId, user.Tel)
+	fmt.Println("用户登录", user.LoginId, "用户手机号验证", user.Tel)
 	if user.LoginId != "" {
 		zap.L().Error("用户已存在", zap.Error(err))
 		myCode = code.CheckUserIsExist
-		return myCode, errMsg.UserIsExist
+		IsExist = false
+		return IsExist, myCode, errMsg.UserIsExist
 	} else if user.Tel != 0 {
 		zap.L().Error("手机号已注册", zap.Error(err))
 		myCode = code.TelIsUsed
-		return myCode, errMsg.TelIsUsed
+		IsExist = false
+		return IsExist, myCode, errMsg.TelIsUsed
 	}
-	return code.SUCCESS, nil
+	IsExist = true
+	return IsExist, code.SUCCESS, nil
 }
 
 // RegisterUserInfo 注册用户信息
@@ -76,6 +81,12 @@ func CheckUserInfo(p *models.User) (err error) {
 func CheckUser(p *models.User) (*models.CheckUser, code.MyCode, error) {
 	// 先定义一个user用来存储信息
 	var user models.User
+	IsExist, myCode, err := CheckUserIsExist(p.LoginId, p.Tel)
+	if IsExist {
+		myCode = code.UserIsNotExist
+		err = errMsg.UserIsNotExist
+		return nil, myCode, err
+	}
 	// 去数据库中查询是否存在这个用户,如果存在继续下一步的操作
 	// 如果用户存在，那么返回这个用户的基本信息，名字，签名，头像等信息
 	if p.Tel != 0 {

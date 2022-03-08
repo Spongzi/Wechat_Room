@@ -63,10 +63,13 @@ func RegisterUserInfo(p *models.User) (code.MyCode, error) {
 	return code.SUCCESS, nil
 }
 
-// CheckUserInfo 检查用户信息
+// CheckUserInfo 检查用户信息--> 登录验证
 func CheckUserInfo(p *models.User) (err error) {
 	var user models.User
-	if err = DB.Select("password").Where("login_id = ?", p.LoginId).Find(&user).Error; err != nil {
+	if err = DB.Select("password", "uuid").
+		Where("login_id = ?", p.LoginId).
+		Find(&user).
+		Error; err != nil {
 		zap.L().Error("检查用户信息失败", zap.Error(err))
 		return errMsg.CheckFailed
 	}

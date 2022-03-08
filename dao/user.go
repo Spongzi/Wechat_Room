@@ -121,6 +121,11 @@ func CheckUser(p *models.User) (*models.CheckUser, code.MyCode, error) {
 	}, code.SUCCESS, nil
 }
 
+// AddFriend 添加好友
+func AddFriend() {
+
+}
+
 // MD5 密码验证
 func MD5(v string) string {
 	d := []byte(v)

@@ -77,3 +77,22 @@ func CheckUser(c *gin.Context) {
 	}
 	resp.ResponseSuccess(c, user)
 }
+
+// AddFriend 添加好友
+func AddFriend(c *gin.Context) {
+	var friend models.PramsAddFriend
+	// 首先绑定输入的用户
+	if err := c.ShouldBindJSON(&friend); err != nil {
+		zap.L().Error("绑定数据失败", zap.Error(err))
+		errs, ok := err.(validator.ValidationErrors)
+		if !ok {
+			resp.ResponseError(c, code.InvalidParamFailed)
+			return
+		}
+		resp.ResponseErrorWithMsg(c, code.InvalidParamFailed, errs.Translate(trans.Trans))
+		return
+	}
+	// 逻辑操作, 发送添加数据
+	logic.AddFriend()
+	// 返回结果
+}
